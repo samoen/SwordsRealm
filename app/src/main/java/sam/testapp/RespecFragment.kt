@@ -29,9 +29,9 @@ class RespecFragment : Fragment() {
     fun Select(direction:Int, stat:String){
         if (CP().CanChangeStat(direction, stat)) {
             when(stat){
-                "strength"-> CP().stats.strength++
-                "dexterity"-> CP().stats.dexterity++
-                "intelligence"-> CP().stats.intelligence++
+                "strength"-> CP().stats.strength = CP().stats.strength + direction
+                "dexterity"-> CP().stats.dexterity = CP().stats.dexterity + direction
+                "intelligence"-> CP().stats.intelligence = CP().stats.intelligence + direction
             }
             RefreshTextViews()
         } else Toast.makeText(context, "Your equipped items prevent you from changing that stat", Toast.LENGTH_SHORT).show()

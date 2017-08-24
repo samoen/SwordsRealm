@@ -39,40 +39,40 @@ fun List<Pair<Int,Int>>.CalculatePairsFromRelative(mpNum: Int, boardPos: Mutable
 
 fun Activity.hideKeyboard() {
     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    imm.hideSoftInputFromWindow(findViewById(android.R.id.content).getWindowToken(), 0);
+    imm.hideSoftInputFromWindow(findViewById(android.R.id.content).getWindowToken(), 0)
 }
 
 fun Player.CanChangeStat(direction: Int, stat: String): Boolean {
-    val strupperhead: Int = this.equipped.head?.stat_requirement?.strength_upper?:0
-    val strlowerhead: Int = this.equipped.head?.stat_requirement?.strength_upper?:0
-    val dexupperhead: Int = this.equipped.head?.stat_requirement?.strength_upper?:0
-    val dexlowerhead: Int = this.equipped.head?.stat_requirement?.strength_upper?:0
-    val intupperhead: Int = this.equipped.head?.stat_requirement?.strength_upper?:0
-    val intlowerhead: Int = this.equipped.head?.stat_requirement?.strength_upper?:0
-    val struppershoulders: Int = this.equipped.shoulders?.stat_requirement?.strength_upper?:0
-    val strlowershoulders: Int = this.equipped.shoulders?.stat_requirement?.strength_upper?:0
-    val dexuppershoulders: Int = this.equipped.shoulders?.stat_requirement?.strength_upper?:0
-    val dexlowershoulders: Int = this.equipped.shoulders?.stat_requirement?.strength_upper?:0
-    val intuppershoulders: Int = this.equipped.shoulders?.stat_requirement?.strength_upper?:0
-    val intlowershoulders: Int = this.equipped.shoulders?.stat_requirement?.strength_upper?:0
-    val strupperlegs: Int = this.equipped.legs?.stat_requirement?.strength_upper?:0
-    val strlowerlegs: Int = this.equipped.legs?.stat_requirement?.strength_upper?:0
-    val dexupperlegs: Int = this.equipped.legs?.stat_requirement?.strength_upper?:0
-    val dexlowerlegs: Int = this.equipped.legs?.stat_requirement?.strength_upper?:0
-    val intupperlegs: Int = this.equipped.legs?.stat_requirement?.strength_upper?:0
-    val intlowerlegs: Int = this.equipped.legs?.stat_requirement?.strength_upper?:0
-    val strupperoffhand: Int = this.equipped.offhand?.stat_requirement?.strength_upper?:0
-    val strloweroffhand: Int = this.equipped.offhand?.stat_requirement?.strength_upper?:0
-    val dexupperoffhand: Int = this.equipped.offhand?.stat_requirement?.strength_upper?:0
-    val dexloweroffhand: Int = this.equipped.offhand?.stat_requirement?.strength_upper?:0
-    val intupperoffhand: Int = this.equipped.offhand?.stat_requirement?.strength_upper?:0
-    val intloweroffhand: Int = this.equipped.offhand?.stat_requirement?.strength_upper?:0
-    val struppermainhand: Int = this.equipped.mainhand?.stat_requirement?.strength_upper?:0
-    val strlowermainhand: Int = this.equipped.mainhand?.stat_requirement?.strength_upper?:0
-    val dexuppermainhand: Int = this.equipped.mainhand?.stat_requirement?.strength_upper?:0
-    val dexlowermainhand: Int = this.equipped.mainhand?.stat_requirement?.strength_upper?:0
-    val intuppermainhand: Int = this.equipped.mainhand?.stat_requirement?.strength_upper?:0
-    val intlowermainhand: Int = this.equipped.mainhand?.stat_requirement?.strength_upper?:0
+    val strupperhead: Int = this.equipped.head?.stat_requirement?.strength_upper?:99
+    val strlowerhead: Int = this.equipped.head?.stat_requirement?.strength_lower?:99
+    val dexupperhead: Int = this.equipped.head?.stat_requirement?.dexterity_upper?:99
+    val dexlowerhead: Int = this.equipped.head?.stat_requirement?.dexterity_lower?:99
+    val intupperhead: Int = this.equipped.head?.stat_requirement?.intelligence_upper?:99
+    val intlowerhead: Int = this.equipped.head?.stat_requirement?.intelligence_lower?:0
+    val struppershoulders: Int = this.equipped.shoulders?.stat_requirement?.strength_upper?:99
+    val strlowershoulders: Int = this.equipped.shoulders?.stat_requirement?.strength_lower?:0
+    val dexuppershoulders: Int = this.equipped.shoulders?.stat_requirement?.dexterity_upper?:99
+    val dexlowershoulders: Int = this.equipped.shoulders?.stat_requirement?.dexterity_lower?:0
+    val intuppershoulders: Int = this.equipped.shoulders?.stat_requirement?.intelligence_upper?:99
+    val intlowershoulders: Int = this.equipped.shoulders?.stat_requirement?.intelligence_lower?:0
+    val strupperlegs: Int = this.equipped.legs?.stat_requirement?.strength_upper?:99
+    val strlowerlegs: Int = this.equipped.legs?.stat_requirement?.strength_lower?:0
+    val dexupperlegs: Int = this.equipped.legs?.stat_requirement?.dexterity_upper?:99
+    val dexlowerlegs: Int = this.equipped.legs?.stat_requirement?.dexterity_lower?:0
+    val intupperlegs: Int = this.equipped.legs?.stat_requirement?.intelligence_upper?:99
+    val intlowerlegs: Int = this.equipped.legs?.stat_requirement?.intelligence_lower?:0
+    val strupperoffhand: Int = this.equipped.offhand?.stat_requirement?.strength_upper?:99
+    val strloweroffhand: Int = this.equipped.offhand?.stat_requirement?.strength_lower?:0
+    val dexupperoffhand: Int = this.equipped.offhand?.stat_requirement?.dexterity_upper?:99
+    val dexloweroffhand: Int = this.equipped.offhand?.stat_requirement?.dexterity_lower?:0
+    val intupperoffhand: Int = this.equipped.offhand?.stat_requirement?.intelligence_upper?:99
+    val intloweroffhand: Int = this.equipped.offhand?.stat_requirement?.intelligence_lower?:0
+    val struppermainhand: Int = this.equipped.mainhand?.stat_requirement?.strength_upper?:99
+    val strlowermainhand: Int = this.equipped.mainhand?.stat_requirement?.strength_lower?:0
+    val dexuppermainhand: Int = this.equipped.mainhand?.stat_requirement?.dexterity_upper?:99
+    val dexlowermainhand: Int = this.equipped.mainhand?.stat_requirement?.dexterity_lower?:0
+    val intuppermainhand: Int = this.equipped.mainhand?.stat_requirement?.intelligence_upper?:99
+    val intlowermainhand: Int = this.equipped.mainhand?.stat_requirement?.intelligence_lower?:0
     
     var canchange = true
     when (stat) {

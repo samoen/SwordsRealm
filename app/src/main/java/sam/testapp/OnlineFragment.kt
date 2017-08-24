@@ -20,7 +20,7 @@ import kotlinx.android.synthetic.main.fragment_online.*
 class OnlineFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View = inflater.inflate(R.layout.fragment_online,container,false)
 
-    val MAX_PLAYERS_MINUS_ONE = 2
+    var MAX_PLAYERS_MINUS_ONE = -1
     val ANIMATION_TIME = 300
     var playerNumber = 0
     var playerReadies : MutableMap<Int,String> = mutableMapOf()
@@ -56,6 +56,8 @@ class OnlineFragment : Fragment() {
         chronometer_time.onChronometerTickListener = object: Chronometer.OnChronometerTickListener {
             override fun onChronometerTick(chronometer: Chronometer?) {
                 if(chronometer?.text == "00:10"){
+                    activeSlot = "wait"
+                    SelectAbility(activeSlot)
                     IA().RemoveMarkers()
                     FB("Player${playerNumber}Type",activeAbilityType?:"wait")
                     FB("Player${playerNumber}Speed",myspd.toString())
@@ -188,9 +190,15 @@ class OnlineFragment : Fragment() {
                         IA().PutHeroToPosition(pos?:0,pNum)
                         FB("Player${pNum}Location", IA().PlayersBoardPos[pNum].toString())
                         if (IA().lootBags.containsKey(pos)){
-                            Toast.makeText(context,"Picked up a ${IL()[IA().lootBags[pos]?:0]}",Toast.LENGTH_LONG).show()
-                            CP().items.add(IL()[IA().lootBags[pos]?:0])
-                            IA().RemoveLootBag(pos?:0)
+
+                            if(CP().items.filter {it.id == IL()[IA().lootBags[pos]?:0].id }.firstOrNull() == null){
+                                Toast.makeText(context,"Picked up ${IL()[IA().lootBags[pos]?:0].name}",Toast.LENGTH_LONG).show()
+                                CP().items.add(IL()[IA().lootBags[pos]?:0])
+                                IA().RemoveLootBag(pos?:0)
+                            }else{
+                                Toast.makeText(context,"Looted ${IL()[IA().lootBags[pos]?:0].price} Gold",Toast.LENGTH_LONG).show()
+                                CP().gold = CP().gold + IL()[IA().lootBags[pos]?:0].price
+                            }
                         }
                         if (pos == IA().cavePos){
                             CP().room = "GameRoom2"
@@ -210,6 +218,7 @@ class OnlineFragment : Fragment() {
         mDatabase?.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if(this@OnlineFragment.activity != null){
+                    MAX_PLAYERS_MINUS_ONE = dataSnapshot.child("maxplayerid").getValue(String::class.java).toInt()
                     for(i in 0..MAX_PLAYERS_MINUS_ONE){
                         playerReadies.put(i, dataSnapshot.child("Player${i}Ready").getValue(String::class.java).toString())
                         playerNames.put(i, dataSnapshot.child("Player${i}Name").getValue(String::class.java).toString())
@@ -222,7 +231,14 @@ class OnlineFragment : Fragment() {
                     if(firstDatabaseRead){
                         for(i in 0..MAX_PLAYERS_MINUS_ONE){
                             if (playerNames[i]=="NO_NAME"){
-                                val startpos = 99-((i+1)*3)
+                                var startpos = 99 - ((i+1)*2)
+                                while (playerLocations.containsValue(startpos.toString())){
+                                    if(startpos == 1){
+                                        startpos = 98
+                                    }else{
+                                        startpos--
+                                    }
+                                }
                                 playerNumber = i
                                 FB("Player${i}Location", startpos.toString())
                                 FB("Player${i}Ready","NOT_READY")
@@ -313,6 +329,8 @@ class OnlineFragment : Fragment() {
                                         Toast.makeText(context,"${playerNames[i]} ${getString(R.string.joined)}",Toast.LENGTH_SHORT).show()
                                         IA().PutEnemyToPosition( playerLocations[i]?.toInt()?:0,i)
                                         Loot.put(i,playerLoots[i].toString())
+                                        chronometer_time.base = SystemClock.elapsedRealtime()
+                                        chronometer_time.start()
                                     }
                                 }
                             }
@@ -396,17 +414,22 @@ class OnlineFragment : Fragment() {
     }
     fun ClickableButtons(clickable:Boolean){
         if(clickable){
-            Handler().postDelayed({
+            folding_tab_bar.expand()
+            ShowCooldownTextViews(false)
+            /*Handler().postDelayed({
                 folding_tab_bar.expand()
                 ShowCooldownTextViews(false)
-            },100)
+            },100)*/
             chronometer_time.base = SystemClock.elapsedRealtime()
             chronometer_time.start()
         }else if(!clickable){
-            Handler().postDelayed({
+
+            folding_tab_bar.rollUp()
+            ShowCooldownTextViews(true)
+            /*Handler().postDelayed({
                 folding_tab_bar.rollUp()
                 ShowCooldownTextViews(true)
-            },100)
+            },100)*/
             chronometer_time.stop()
         }
     }
