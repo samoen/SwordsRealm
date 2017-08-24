@@ -11,7 +11,6 @@ class MainActivity : AppCompatActivity() {
     var itemList = mutableListOf<Item>()
     lateinit var realm: Realm
     var mDatabase: DatabaseReference? = null
-    var itemsLoaded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,11 +67,11 @@ class MainActivity : AppCompatActivity() {
                     currentPlayer.items.add(item)
                 }
             }
-            currentPlayer.equipped.head = itemList.filter { it.id == p.equipped?.headid }.firstOrNull()
-            currentPlayer.equipped.shoulders = itemList.filter { it.id == p.equipped?.shouldersid }.firstOrNull()
-            currentPlayer.equipped.legs = itemList.filter { it.id == p.equipped?.legsid }.firstOrNull()
-            currentPlayer.equipped.offhand = itemList.filter { it.id == p.equipped?.offhandid }.firstOrNull()
-            currentPlayer.equipped.mainhand = itemList.filter { it.id == p.equipped?.mainhandid }.firstOrNull()
+            if (p.equipped?.headid != 999) currentPlayer.equipped.head = itemList.filter { it.id == p.equipped?.headid }.firstOrNull()
+            if (p.equipped?.shouldersid != 999) currentPlayer.equipped.shoulders = itemList.filter { it.id == p.equipped?.shouldersid }.firstOrNull()
+            if (p.equipped?.legsid != 999) currentPlayer.equipped.legs = itemList.filter { it.id == p.equipped?.legsid }.firstOrNull()
+            if (p.equipped?.offhandid != 999) currentPlayer.equipped.offhand = itemList.filter { it.id == p.equipped?.offhandid }.firstOrNull()
+            if (p.equipped?.mainhandid != 999) currentPlayer.equipped.mainhand = itemList.filter { it.id == p.equipped?.mainhandid }.firstOrNull()
         }
     }
 

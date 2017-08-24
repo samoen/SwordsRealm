@@ -56,7 +56,11 @@ class OnlineFragment : Fragment() {
         chronometer_time.onChronometerTickListener = object: Chronometer.OnChronometerTickListener {
             override fun onChronometerTick(chronometer: Chronometer?) {
                 if(chronometer?.text == "00:10"){
-                    Wait()
+                    IA().RemoveMarkers()
+                    FB("Player${playerNumber}Type",activeAbilityType?:"wait")
+                    FB("Player${playerNumber}Speed",myspd.toString())
+                    FB("Player${playerNumber}Ready","READY")
+                    ClickableButtons(false)
                 }
             }
         }
@@ -366,17 +370,10 @@ class OnlineFragment : Fragment() {
             "wait"->{
                 myspd = 0
                 activeAbilityType = "wait"
-
             }
         }
     }
-    fun Wait(){
-        activeSlot = "wait"
-        IA().RemoveMarkers()
-        FB("Player${playerNumber}Type","wait")
-        FB("Player${playerNumber}Ready","READY")
-        ClickableButtons(false)
-    }
+
     fun DecrementAllCooldowns(){
         for(v in cooldowns){
             val old = v.value

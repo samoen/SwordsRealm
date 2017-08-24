@@ -8,4 +8,4 @@ open class Item(var name: String = "no item",
                 var ability: Ability = Ability(),
                 var price: Int = 0,
                 var image_resource: Int = 0,
-                var id:Int = 0)
+                var id:Int = 999)

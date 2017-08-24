@@ -36,18 +36,9 @@ class OnlineImageAdapter(private val mContext: Context) : BaseAdapter() {
             emptySquare,emptySquare,emptySquare,emptySquare,emptySquare,emptySquare,emptySquare,emptySquare,emptySquare,emptySquare
     )
 
-    override fun getCount(): Int {
-        return mThumbIds.size
-    }
-
-    override fun getItem(position: Int): Any? {
-        return null
-    }
-
-    override fun getItemId(position: Int): Long {
-        return 0
-    }
-
+    override fun getCount(): Int = mThumbIds.size
+    override fun getItem(position: Int): Any? = null
+    override fun getItemId(position: Int): Long = 0
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val imageView: ImageView
         if (convertView == null) {
@@ -58,7 +49,6 @@ class OnlineImageAdapter(private val mContext: Context) : BaseAdapter() {
         } else {
             imageView = convertView as ImageView
         }
-
         imageView.setImageResource(mThumbIds[position])
         return imageView
     }
