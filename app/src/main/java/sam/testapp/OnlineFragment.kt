@@ -43,26 +43,35 @@ class OnlineFragment : Fragment() {
     var Loot: MutableMap<Int,String> = mutableMapOf()
     var myLootSlot = "head"
     var lockPlayers = false
+    var lockButtons = false
+    var myLocation: Int? = -1
+    var myLootID : Int = -1
+    var lockFB = false
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        myLootID = CP().CalculateMyLootID()
+        myLootSlot = CP().CalculateMyLootSlot()
         showProgressDialog()
-        StartFB(CP().room)
+        StartFB()
         InitViews()
     }
 
     fun InitViews(){
+        chronometer_time.visibility = View.GONE
         chronometer_time.base = SystemClock.elapsedRealtime()
         chronometer_time.onChronometerTickListener = object: Chronometer.OnChronometerTickListener {
             override fun onChronometerTick(chronometer: Chronometer?) {
-                if(chronometer?.text == "00:10"){
-                    activeSlot = "wait"
-                    SelectAbility(activeSlot)
-                    IA().RemoveMarkers()
-                    FB("Player${playerNumber}Type",activeAbilityType?:"wait")
-                    FB("Player${playerNumber}Speed",myspd.toString())
-                    FB("Player${playerNumber}Ready","READY")
-                    ClickableButtons(false)
+                if(chronometer?.text == "01:00"){
+                    LeaveFB()
+                    val simpleAlert = AlertDialog.Builder(activity).create()
+                    simpleAlert.setTitle(getString(R.string.afk))
+                    simpleAlert.setMessage(getString(R.string.booted_afk))
+                    simpleAlert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.ok), object : DialogInterface.OnClickListener{
+                        override fun onClick(dialog: DialogInterface?, which: Int) {}
+                    })
+                    simpleAlert.show()
+                    fragmentManager.beginTransaction().replace(R.id.frameLayout_main, MainFragment()).commitAllowingStateLoss()
                 }
             }
         }
@@ -146,7 +155,7 @@ class OnlineFragment : Fragment() {
             if (!illegalMovement){
                 if (pNum != playerNumber){
                     if (type=="attack"){
-                        if(pos == IA().PlayersBoardPos[playerNumber]){
+                        if(pos == myLocation){
                             LeaveFB()
                             isHeroDead[playerNumber] = true
                             val simpleAlert = AlertDialog.Builder(activity).create()
@@ -158,13 +167,13 @@ class OnlineFragment : Fragment() {
                             simpleAlert.show()
 
                             when(myLootSlot){
-                                "head"->CP().equipped.head = IL()[0]
-                                "shoulders"->CP().equipped.shoulders = IL()[1]
-                                "legs"->CP().equipped.legs = IL()[2]
-                                "offhand"->CP().equipped.offhand = IL()[3]
-                                "mainhand"->CP().equipped.mainhand = IL()[4]
+                                "head"->CP().equipped.head = Item()
+                                "shoulders"->CP().equipped.shoulders = Item()
+                                "legs"->CP().equipped.legs = Item()
+                                "offhand"->CP().equipped.offhand = Item()
+                                "mainhand"->CP().equipped.mainhand = Item()
                             }
-                            CP().items.removeAll { it.id == Loot[playerNumber]?.toInt() }
+                            CP().items = CP().items.filter{ it.id != myLootID }.toMutableList()
                             fragmentManager.beginTransaction().replace(R.id.frameLayout_main, MainFragment()).commit()
                         }else if(IA().PlayersBoardPos.containsValue(pos)){
                             val enemyKey = IA().PlayersBoardPos.filter{ it.value == pos }.keys.firstOrNull()
@@ -188,9 +197,9 @@ class OnlineFragment : Fragment() {
                         }
                     }else if(type == "move"){
                         IA().PutHeroToPosition(pos?:0,pNum)
-                        FB("Player${pNum}Location", IA().PlayersBoardPos[pNum].toString())
+                        myLocation = pos
+                        FB("Player${pNum}Location", pos.toString())
                         if (IA().lootBags.containsKey(pos)){
-
                             if(CP().items.filter {it.id == IL()[IA().lootBags[pos]?:0].id }.firstOrNull() == null){
                                 Toast.makeText(context,"Picked up ${IL()[IA().lootBags[pos]?:0].name}",Toast.LENGTH_LONG).show()
                                 CP().items.add(IL()[IA().lootBags[pos]?:0])
@@ -201,8 +210,8 @@ class OnlineFragment : Fragment() {
                             }
                         }
                         if (pos == IA().cavePos){
-                            CP().room = "GameRoom2"
                             LeaveFB()
+                            CP().room = "GameRoom2"
                             fragmentManager.beginTransaction().replace(R.id.frameLayout_main, OnlineFragment()).commitAllowingStateLoss()
                         }
                     }
@@ -213,11 +222,11 @@ class OnlineFragment : Fragment() {
     }
 
 
-    fun StartFB(room: String){
-        mDatabase =  FirebaseDatabase.getInstance().getReference(room)
+    fun StartFB(){
+        mDatabase =  FirebaseDatabase.getInstance().getReference(CP().room)
         mDatabase?.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if(this@OnlineFragment.activity != null){
+                if(this@OnlineFragment.activity != null && !lockFB){
                     MAX_PLAYERS_MINUS_ONE = dataSnapshot.child("maxplayerid").getValue(String::class.java).toInt()
                     for(i in 0..MAX_PLAYERS_MINUS_ONE){
                         playerReadies.put(i, dataSnapshot.child("Player${i}Ready").getValue(String::class.java).toString())
@@ -242,7 +251,7 @@ class OnlineFragment : Fragment() {
                                 playerNumber = i
                                 FB("Player${i}Location", startpos.toString())
                                 FB("Player${i}Ready","NOT_READY")
-                                FB("Player${i}Loot",CP().CalculateMyLoot().toString())
+                                FB("Player${i}Loot",myLootID.toString())
                                 FB("Player${i}Name",CP().name)
                                 IA().PutHeroToPosition(startpos,i)
                                 break
@@ -257,9 +266,9 @@ class OnlineFragment : Fragment() {
                                 IA().PutEnemyToPosition(i.value.toInt(),i.key)
                             }
                         }
-                        firstDatabaseRead = false
                         ClickableButtons(true)
                         hideProgressDialog()
+                        firstDatabaseRead = false
 
                     }else if(!firstDatabaseRead){
 
@@ -271,66 +280,74 @@ class OnlineFragment : Fragment() {
                         val mtyp = playerTypes
                         Loot = playerLoots
 
-                        if(playerReadies[playerNumber]=="READY"){
-                            var otherPlayersReadyOrDone = true
-                            for(v in 0..MAX_PLAYERS_MINUS_ONE){
-                                if(v != playerNumber && playerReadies[v] != "done" && playerReadies[v] != "READY" && playerNames[v]!="NO_NAME"){
-                                    otherPlayersReadyOrDone = false
+                        when(playerReadies[playerNumber]){
+                            "READY"->{
+                                var otherPlayersReadyOrDone = true
+                                for(v in 0..MAX_PLAYERS_MINUS_ONE){
+                                    if(v != playerNumber && playerReadies[v] != "done" && playerReadies[v] != "READY" && playerNames[v]!="NO_NAME"){
+                                        otherPlayersReadyOrDone = false
+                                    }
                                 }
-                            }
-                            if(otherPlayersReadyOrDone){
-                                when(activeSlot){
-                                    "head"-> cooldowns.put("head",CP().equipped.head?.ability?.cooldown?:0)
-                                    "shoulders"->cooldowns.put("shoulders",CP().equipped.shoulders?.ability?.cooldown?:0)
-                                    "legs"->cooldowns.put("legs",CP().equipped.legs?.ability?.cooldown?:0)
-                                    "offhand"->cooldowns.put("offhand",CP().equipped.offhand?.ability?.cooldown?:0)
-                                    "mainhand"->cooldowns.put("mainhand",CP().equipped.mainhand?.ability?.cooldown?:0)
-                                }
-                                DecrementAllCooldowns()
-                                lockPlayers = true
-                                var inc = 0
-                                for (v in speedSortedPlayerNumbers){
-                                    Handler().postDelayed( {
+                                if(otherPlayersReadyOrDone){
+                                    when(activeSlot){
+                                        "head"-> cooldowns.put("head",CP().equipped.head?.ability?.cooldown?:0)
+                                        "shoulders"->cooldowns.put("shoulders",CP().equipped.shoulders?.ability?.cooldown?:0)
+                                        "legs"->cooldowns.put("legs",CP().equipped.legs?.ability?.cooldown?:0)
+                                        "offhand"->cooldowns.put("offhand",CP().equipped.offhand?.ability?.cooldown?:0)
+                                        "mainhand"->cooldowns.put("mainhand",CP().equipped.mainhand?.ability?.cooldown?:0)
+                                    }
+                                    DecrementAllCooldowns()
+                                    lockPlayers = true
+                                    lockFB = true
+                                    var inc = 0
+                                    for (v in speedSortedPlayerNumbers){
+                                        Handler().postDelayed( {
+                                            if(this@OnlineFragment.activity != null){
+                                                ActivateHero(v.key,mpos[v.key]?.toInt(),mtyp[v.key])
+                                            }
+                                        },ANIMATION_TIME*inc.toLong() )
+                                        inc++
+                                    }
+                                    Handler().postDelayed({
                                         if(this@OnlineFragment.activity != null){
-                                            ActivateHero(v.key,mpos[v.key]?.toInt(),mtyp[v.key])
+                                            FB("Player${playerNumber}Ready","done")
+                                            lockFB = false
                                         }
-                                    },ANIMATION_TIME*inc.toLong() )
-                                    inc++
+                                    },ANIMATION_TIME*activePlayerNames.size.toLong())
                                 }
+                            }
+                            "done"->{
+                                var allPlayersDoneOrNotReady = true
+                                for(v in 0..MAX_PLAYERS_MINUS_ONE){
+                                    if(v != playerNumber && playerReadies[v] != "done" && playerReadies[v]!="NOT_READY" && playerNames[v]!="NO_NAME") allPlayersDoneOrNotReady = false
+                                }
+                                if (allPlayersDoneOrNotReady){
+                                    FB("Player${playerNumber}Ready","NOT_READY")
+                                    if(!lockButtons){
+                                        ClickableButtons(true)
+                                        lockButtons = true
+                                    }
+                                    IA().ClearLastMiss()
+                                    lockPlayers = false
+                                }
+                            }
+                            "NOT_READY"->{
                                 Handler().postDelayed({
-                                    if(this@OnlineFragment.activity != null){
-                                        FB("Player${playerNumber}Ready","done")
-                                    }
-                                },ANIMATION_TIME*activePlayerNames.size.toLong())
-                            }
-
-                        }else if (playerReadies[playerNumber]=="done"){
-                            var result = true
-                            for(v in 0..MAX_PLAYERS_MINUS_ONE){
-                                if(v != playerNumber && playerReadies[v] != "done" && playerReadies[v]!="NOT_READY" && playerNames[v]!="NO_NAME"){
-                                    result = false
-                                }
-                            }
-                            if (result){
-                                FB("Player${playerNumber}Ready","NOT_READY")
-                                ClickableButtons(true)
-                                IA().ClearLastMiss()
-                                lockPlayers = false
-                            }
-
-                        }else if (playerReadies[playerNumber]=="NOT_READY"){
-                            for (i in 0..MAX_PLAYERS_MINUS_ONE){
-                                if(i != playerNumber && !lockPlayers){
-                                    if(playerNames[i] == "NO_NAME" && IA().PlayersBoardPos.containsKey(i)){
-                                        Toast.makeText(context,getString(R.string.left),Toast.LENGTH_SHORT).show()
-                                        IA().RemoveEnemy(i)
-                                    }
-                                    if (playerNames[i] != "NO_NAME" && !IA().PlayersBoardPos.containsKey(i)){
-                                        Toast.makeText(context,"${playerNames[i]} ${getString(R.string.joined)}",Toast.LENGTH_SHORT).show()
-                                        IA().PutEnemyToPosition( playerLocations[i]?.toInt()?:0,i)
-                                        Loot.put(i,playerLoots[i].toString())
-                                        chronometer_time.base = SystemClock.elapsedRealtime()
-                                        chronometer_time.start()
+                                    lockButtons = false
+                                },100)
+                                for (i in 0..MAX_PLAYERS_MINUS_ONE){
+                                    if(i != playerNumber && !lockPlayers){
+                                        if(playerNames[i] == "NO_NAME" && IA().PlayersBoardPos.containsKey(i)){
+                                            Toast.makeText(context,getString(R.string.left),Toast.LENGTH_SHORT).show()
+                                            IA().RemoveEnemy(i)
+                                        }
+                                        if (playerNames[i] != "NO_NAME" && !IA().PlayersBoardPos.containsKey(i)){
+                                            Toast.makeText(context,"${playerNames[i]} ${getString(R.string.joined)}",Toast.LENGTH_SHORT).show()
+                                            IA().PutEnemyToPosition( playerLocations[i]?.toInt()?:0,i)
+                                            Loot.put(i,playerLoots[i].toString())
+                                            chronometer_time.base = SystemClock.elapsedRealtime()
+                                            chronometer_time.start()
+                                        }
                                     }
                                 }
                             }
@@ -349,9 +366,6 @@ class OnlineFragment : Fragment() {
         FB("Player${playerNumber}Speed","0")
         FB("Player${playerNumber}Ready","NO_READY")
         FB("Player${playerNumber}Loot","0")
-
-        CP().room = "GameRoom1"
-
     }
 
     fun FB(key: String, value: String ){
@@ -416,20 +430,11 @@ class OnlineFragment : Fragment() {
         if(clickable){
             folding_tab_bar.expand()
             ShowCooldownTextViews(false)
-            /*Handler().postDelayed({
-                folding_tab_bar.expand()
-                ShowCooldownTextViews(false)
-            },100)*/
             chronometer_time.base = SystemClock.elapsedRealtime()
             chronometer_time.start()
         }else if(!clickable){
-
             folding_tab_bar.rollUp()
             ShowCooldownTextViews(true)
-            /*Handler().postDelayed({
-                folding_tab_bar.rollUp()
-                ShowCooldownTextViews(true)
-            },100)*/
             chronometer_time.stop()
         }
     }

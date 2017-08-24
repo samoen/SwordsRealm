@@ -13,7 +13,7 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         button_new_game.setOnClickListener {
-            (activity as MainActivity).currentPlayer = Player(name = editText_name.text.toString(), gold = 10)
+            (activity as MainActivity).currentPlayer = Player(name = editText_name.text.toString())
             fragmentManager.beginTransaction().replace(R.id.frameLayout_main,MainFragment()).commit()
         }
         button_continue.setOnClickListener {

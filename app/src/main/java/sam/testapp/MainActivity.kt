@@ -7,7 +7,7 @@ import io.realm.Realm
 
 class MainActivity : AppCompatActivity() {
 
-    var currentPlayer:Player = Player(gold = 6)
+    var currentPlayer:Player = Player()
     var itemList = mutableListOf<Item>()
     lateinit var realm: Realm
     var mDatabase: DatabaseReference? = null

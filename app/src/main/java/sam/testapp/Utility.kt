@@ -102,22 +102,63 @@ fun Player.CanChangeStat(direction: Int, stat: String): Boolean {
 }
 fun Player.StatsMet(item: Item): Boolean = (this.stats.strength in item.stat_requirement.strength_lower..item.stat_requirement.strength_upper && this.stats.dexterity in item.stat_requirement.dexterity_lower..item.stat_requirement.dexterity_upper && this.stats.intelligence in item.stat_requirement.intelligence_lower..item.stat_requirement.intelligence_upper)
 fun Player.CanAfford(item: Item): Boolean = this.gold >= item.price
-fun Player.CalculateMyLoot():Int{
+fun Player.CalculateMyLootID():Int{
     var resultID = this.equipped.head?.id?:0
-    if (this.equipped.shoulders?.price?:0>resultID){
+    var resultSlot = this.equipped.head?.equipment_slot?:""
+    var resultPrice = this.equipped.head?.price?:0
+
+    if (this.equipped.shoulders?.price?:0>resultPrice){
         resultID = this.equipped.shoulders?.id?:0
+        resultSlot = this.equipped.shoulders?.equipment_slot?:""
+        resultPrice = this.equipped.shoulders?.price?:0
+
     }
-    if (this.equipped.legs?.price?:0>resultID){
+    if (this.equipped.legs?.price?:0>resultPrice){
         resultID = this.equipped.legs?.id?:0
+        resultSlot = this.equipped.legs?.equipment_slot?:""
+        resultPrice = this.equipped.legs?.price?:0
     }
-    if (this.equipped.offhand?.price?:0>resultID){
+    if (this.equipped.offhand?.price?:0>resultPrice){
         resultID = this.equipped.offhand?.id?:0
+        resultSlot = this.equipped.offhand?.equipment_slot?:""
+        resultPrice = this.equipped.offhand?.price?:0
     }
-    if (this.equipped.mainhand?.price?:0>resultID){
+    if (this.equipped.mainhand?.price?:0>resultPrice){
         resultID = this.equipped.mainhand?.id?:0
+        resultSlot = this.equipped.mainhand?.equipment_slot?:""
+        resultPrice = this.equipped.mainhand?.price?:0
     }
     return resultID
 }
+fun Player.CalculateMyLootSlot():String{
+    var resultID = this.equipped.head?.id?:0
+    var resultSlot = this.equipped.head?.equipment_slot?:""
+    var resultPrice = this.equipped.head?.price?:0
+
+    if (this.equipped.shoulders?.price?:0>resultPrice){
+        resultID = this.equipped.shoulders?.id?:0
+        resultSlot = this.equipped.shoulders?.equipment_slot?:""
+        resultPrice = this.equipped.shoulders?.price?:0
+
+    }
+    if (this.equipped.legs?.price?:0>resultPrice){
+        resultID = this.equipped.legs?.id?:0
+        resultSlot = this.equipped.legs?.equipment_slot?:""
+        resultPrice = this.equipped.legs?.price?:0
+    }
+    if (this.equipped.offhand?.price?:0>resultPrice){
+        resultID = this.equipped.offhand?.id?:0
+        resultSlot = this.equipped.offhand?.equipment_slot?:""
+        resultPrice = this.equipped.offhand?.price?:0
+    }
+    if (this.equipped.mainhand?.price?:0>resultPrice){
+        resultID = this.equipped.mainhand?.id?:0
+        resultSlot = this.equipped.mainhand?.equipment_slot?:""
+        resultPrice = this.equipped.mainhand?.price?:0
+    }
+    return resultSlot
+}
+
 
 fun String.findItemImage(): Int{
     when(this){

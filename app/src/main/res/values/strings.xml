@@ -16,4 +16,6 @@
     <string name="wait">Wait</string>
     <string name="joined">joined the battle</string>
     <string name="left">A hero left the battle</string>
+    <string name="afk">Left the Battle</string>
+    <string name="booted_afk">You were idle for too long and left the battle</string>
 </resources>
